@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  video_viwer:
+    build: ./backend
+    container_name: video_viwer
+    command: bash -c "python app.py"
+    volumes:
+      - ./media:/code/media
+    expose:
+      - 5000
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 5000:80
+    depends_on:
+      - video_viwer
+    volumes:
+      - ./media:/media
+      - ./web:/web
+  roading:
+    build: ./roading
+    container_name: roading
+    command: bash -c "python main.py"
+    volumes:
+      - ./media:/media
+    env_file:
+      - .env
