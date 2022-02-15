@@ -1,29 +1,54 @@
 version: "3.8"
 
 services:
-  video_viwer:
-    build: ./backend
-    container_name: video_viwer
+  redis:
+    image: redis
+    container_name: redis
+    expose:
+      - 6379
+  api:
+    build: backend
+    container_name: api
     command: bash -c "python app.py"
     volumes:
-      - ./media:/code/media
-    expose:
-      - 5000
-
-  nginx:
-    build: ./nginx
+      - ./media/detects:/code/detects
+      - ./media/images:/code/images
     ports:
-      - 5000:80
-    depends_on:
-      - video_viwer
-    volumes:
-      - ./media:/media
-      - ./web:/web
-  roading:
-    build: ./roading
-    container_name: roading
-    command: bash -c "python main.py"
-    volumes:
-      - ./media:/media
+      - 5000:5000
     env_file:
       - .env
+    depends_on:
+      - redis
+  recording:
+    build: record
+    container_name: record
+    command: bash -c "python main.py"
+    env_file:
+      - .env
+    volumes:
+      - ./media/images:/code/images
+      - ./media/videos:/code/videos
+    depends_on:
+      - redis
+  detector:
+    build: detector
+    container_name: detector
+    command: bash -c "python detect.py"
+    env_file:
+      - .env
+    volumes:
+      - ./media/images:/code/images
+      - ./media/videos:/code/videos
+      - ./media/accidents:/code/accidents
+      - ./media/detects:/code/detects
+    depends_on:
+      - redis
+  static_server:
+    image: nginx
+    container_name: static_server
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+      - ./web/build:/web:ro
+      - ./media:/code/media
+    ports:
+      - 8001:80
