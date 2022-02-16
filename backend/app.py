@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 import cv2
 import dotenv
-from flask import Flask, jsonify, Response
+from flask import Flask, jsonify, Response, request
 from flask.json import JSONEncoder
 from flask_cors import cross_origin
 from redis import Redis
@@ -44,12 +44,22 @@ def video_list():
     return jsonify(lst)
 
 
-def gen_stream(path=DETECTED_PATH, redis_key='last_detect'):
+def resize_to_height(img, height):
+    height = int(height)
+    width = img.shape[1]  # keep original width
+    old_height = img.shape[0]
+    width = int(width * height / old_height)
+    return cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
+
+
+def gen_stream(path=DETECTED_PATH, redis_key='last_detect', size=None):
     while True:
         # lst = os.listdir(path)
         # filename = max(lst)
         filename = redis.get(redis_key).decode('utf-8')
         frame = cv2.imread(f'{path}/{filename}')
+        if size is not None:
+            frame = resize_to_height(frame, size)
         (flag, encodedImage) = cv2.imencode(".png", frame)
         yield (b'--frame\r\n'
                b'Content-Type: image/png\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
@@ -58,14 +68,31 @@ def gen_stream(path=DETECTED_PATH, redis_key='last_detect'):
 @app.route('/api/detected-stream')
 @cross_origin()
 def detected_stream():
-    return Response(gen_stream(DETECTED_PATH, redis_key='last_detect'),
+    return Response(gen_stream(DETECTED_PATH, redis_key='last_detect', size=request.args.get('size', None)),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/api/raw-stream')
 @cross_origin()
 def raw_stream():
-    return Response(gen_stream(IMAGES_PATH, 'last_image'),
+    return Response(gen_stream(IMAGES_PATH, 'last_image', size=request.args.get('size', None)),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/api/stream')
+@cross_origin()
+def stream():
+    stream_type = request.args.get('type')
+    type_to_path = {
+        'raw': IMAGES_PATH,
+        'detected': DETECTED_PATH
+    }
+    type_to_redis_key = {
+        'raw': 'last_image',
+        'detected': 'last_detect',
+    }
+    return Response(gen_stream(type_to_path.get(stream_type), type_to_redis_key.get(stream_type),
+                               size=request.args.get('size', None)),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 

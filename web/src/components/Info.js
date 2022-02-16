@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {DATA_URL} from "./const";
+import {FormControl, InputLabel, MenuItem, Select} from "@material-ui/core";
 
 function Item({name, value}) {
     return (
@@ -12,6 +13,8 @@ function Item({name, value}) {
 
 export function Info(props) {
     const [params, setParams] = useState();
+    let options = props.options
+    let onChangeOptions = props.onChangeOptions
 
     async function fetchFps() {
         let resp = await fetch(DATA_URL + "params")
@@ -28,10 +31,47 @@ export function Info(props) {
         return () => clearInterval(interval);
     }, [props]);
 
+    console.log('opt', options)
 
     return (
-        <div className="w-auto me-2 mt-1">
-            <div className="d-inline-block border p-2">
+        <div className="w-auto me-2">
+            <div className="border p-2">
+                <FormControl className="m-2 w-100" variant="standard" sx={{m: 1, minWidth: 120}}>
+                    <InputLabel id="type-label">Тип</InputLabel>
+                    <Select
+                        labelId="type-label"
+                        id="type-select"
+                        value={options?.type}
+                        label="Тип"
+                        variant="standard"
+                        sx={{width: 400}}
+                        onChange={(e) => onChangeOptions?.({...options, type: e.target.value})}
+                    >
+                        <MenuItem value={"raw"}>raw</MenuItem>
+                        <MenuItem value={"detected"}>detected</MenuItem>
+                    </Select>
+                </FormControl>
+                <FormControl className="m-2 w-100" variant="standard" sx={{m: 1, minWidth: 120}}>
+
+                    <InputLabel id="size-label">Размер</InputLabel>
+                    <Select
+                        labelId="size-label"
+                        id="size-select"
+                        value={options?.size}
+                        label="Размер"
+                        variant="standard"
+                        sx={{width: 400}}
+                        onChange={(e) => onChangeOptions?.({...options, size: e.target.value})}
+                    >
+                        <MenuItem value={"1080"}>1080p</MenuItem>
+                        <MenuItem value={"720"}>720p</MenuItem>
+                        <MenuItem value={"540"}>540p</MenuItem>
+                        <MenuItem value={"480"}>480p</MenuItem>
+                        <MenuItem value={"360"}>360p</MenuItem>
+                    </Select>
+                </FormControl>
+            </div>
+            <div className="border p-2">
                 <table>
                     <tbody>
                     <Item name="read fps" value={params?.read_fps?.toFixed?.(3)}/>
