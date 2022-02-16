@@ -29,27 +29,29 @@ class LoadMedia:
         return max(files)
 
     def __next__(self):
-        filename = self.get_filename()
-        while filename is None or filename == self.last_image:
-            time.sleep(0.1)
+        while True:
             filename = self.get_filename()
+            while filename is None or filename == self.last_image:
+                time.sleep(0.1)
+                filename = self.get_filename()
 
-        path = self.path + '/' + filename
+            path = self.path + '/' + filename
 
-        # Read image
-        self.count += 1
-        img0 = cv2.imread(path)  # BGR
-        assert img0 is not None, f'Image Not Found {path}'
-        s = filename
+            # Read image
+            self.count += 1
+            img0 = cv2.imread(path)  # BGR
+            if img0 is None:
+                continue
+            s = filename
 
-        # Padded resize
-        img = letterbox(img0, self.img_size, stride=self.stride, auto=self.auto)[0]
+            # Padded resize
+            img = letterbox(img0, self.img_size, stride=self.stride, auto=self.auto)[0]
 
-        # Convert
-        img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
-        img = np.ascontiguousarray(img)
+            # Convert
+            img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+            img = np.ascontiguousarray(img)
 
-        return path, img, img0, self.cap, s
+            return path, img, img0, self.cap, s
 
     def new_video(self, path):
         self.frame = 0
