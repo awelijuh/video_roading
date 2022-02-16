@@ -9,8 +9,9 @@ from Yolov5_DeepSort_Pytorch.yolov5.utils.augmentations import letterbox
 
 class LoadMedia:
     # YOLOv5 image/video dataloader, i.e. `python detect.py --source image.jpg/vid.mp4`
-    def __init__(self, path, img_size=640, stride=32, auto=True):
+    def __init__(self, path, redis,  img_size=640, stride=32, auto=True):
         self.path = path
+        self.redis = redis
         # self.path = '../images'
         self.img_size = img_size
         self.stride = stride
@@ -23,10 +24,11 @@ class LoadMedia:
         return self
 
     def get_filename(self):
-        files = os.listdir(self.path)
-        if files is None or len(files) == 0:
-            return None
-        return max(files)
+        return self.redis.get('last_image').decode('utf-8')
+        # files = os.listdir(self.path)
+        # if files is None or len(files) == 0:
+        #     return None
+        # return max(files)
 
     def __next__(self):
         while True:

@@ -1,4 +1,5 @@
 import os
+import queue
 import time
 
 import cv2
@@ -24,24 +25,28 @@ import threading
 
 
 class VideoCapture:
-
     def __init__(self, name):
         self.cap = cv2.VideoCapture(name)
-        self.t = threading.Thread(target=self._reader)
-        self.t.daemon = True
-        self.t.start()
+        self.q = queue.Queue()
+        t = threading.Thread(target=self._reader)
+        t.daemon = True
+        t.start()
 
-    # grab frames as soon as they are available
+    # read frames as soon as they are available, keeping only most recent one
     def _reader(self):
         while True:
-            ret = self.cap.grab()
+            ret, frame = self.cap.read()
             if not ret:
                 break
+            if not self.q.empty():
+                try:
+                    self.q.get_nowait()  # discard previous (unprocessed) frame
+                except queue.Empty:
+                    pass
+            self.q.put(frame)
 
-    # retrieve latest frame
     def read(self):
-        ret, frame = self.cap.retrieve()
-        return frame
+        return self.q.get()
 
 
 class FrameSaver:
@@ -64,7 +69,10 @@ class FrameSaver:
 
     def next_frame(self, frame):
         t = time.time()
-        cv2.imwrite(f'{IMAGE_PATH}/{t}.jpg', frame)
+        image_name = f'{t}.png'
+        image_path = f'{IMAGE_PATH}/{image_name}'
+        cv2.imwrite(image_path, frame)
+        redis.set('last_image', image_name)
         images = os.listdir(IMAGE_PATH)
         images.sort(reverse=True)
         for frame_to_remove in images[MAX_IMAGES:]:
@@ -89,7 +97,7 @@ def get_stream():
     r_url = url
     if 'youtube.com' in r_url:
         video = pafy.new(r_url)
-        streams = [v for v in video.streams if v.extension == 'mp4' and v.quality.endswith('480')]
+        streams = [v for v in video.streams if v.extension == 'mp4' and v.quality.endswith('1080')]
 
         # best = video.getworst(preftype="mp4")
         r_url = streams[0].url
@@ -100,7 +108,7 @@ def get_stream():
 class Road:
     def __init__(self, fps=None):
         self.stream = get_stream()
-        self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 0)
+        # self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 0)
         cap = self.stream
         self.fps = fps
         if self.fps is None:

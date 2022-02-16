@@ -44,27 +44,28 @@ def video_list():
     return jsonify(lst)
 
 
-def gen_stream(path=DETECTED_PATH):
+def gen_stream(path=DETECTED_PATH, redis_key='last_detect'):
     while True:
-        lst = os.listdir(path)
-        filename = max(lst)
+        # lst = os.listdir(path)
+        # filename = max(lst)
+        filename = redis.get(redis_key).decode('utf-8')
         frame = cv2.imread(f'{path}/{filename}')
-        (flag, encodedImage) = cv2.imencode(".jpg", frame)
+        (flag, encodedImage) = cv2.imencode(".png", frame)
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
+               b'Content-Type: image/png\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
 
 
 @app.route('/api/detected-stream')
 @cross_origin()
 def detected_stream():
-    return Response(gen_stream(DETECTED_PATH),
+    return Response(gen_stream(DETECTED_PATH, redis_key='last_detect'),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/api/raw-stream')
 @cross_origin()
 def raw_stream():
-    return Response(gen_stream(IMAGES_PATH),
+    return Response(gen_stream(IMAGES_PATH, 'last_image'),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 

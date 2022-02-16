@@ -101,7 +101,7 @@ def detect():
         model.model.half() if half else model.model.float()
 
     # Dataloader
-    dataset = LoadMedia(IMAGE_PATH, img_size=imgsz, stride=stride, auto=pt and not jit)
+    dataset = LoadMedia(IMAGE_PATH, redis, img_size=imgsz, stride=stride, auto=pt and not jit)
 
     # Get names and colors
     names = model.module.names if hasattr(model, 'module') else model.names
@@ -184,7 +184,9 @@ def detect():
                 LOGGER.info('No detections')
 
             im0 = annotator.result()
-            cv2.imwrite(os.path.join(SAVE_RESULT, str(t1)) + '.jpg', im0)
+            img_name = str(t1) + '.png'
+            cv2.imwrite(os.path.join(SAVE_RESULT, img_name), im0)
+            redis.set('last_detect', img_name)
             files = os.listdir(SAVE_RESULT)
             files.sort(reverse=True)
             if len(files) > 0:
