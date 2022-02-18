@@ -106,7 +106,7 @@ def get_stream():
 
 
 class Road:
-    def __init__(self, fps=None):
+    def __init__(self, fps=VIDEO_FPS):
         self.stream = get_stream()
         # self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 0)
         cap = self.stream
@@ -180,7 +180,6 @@ class Road:
 
 
 if __name__ == '__main__':
-    r = Road(VIDEO_FPS)
+    r = Road()
     r.start_road()
     print("Video stop")
-    redis.set('read_fps', 0)
