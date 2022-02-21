@@ -19,9 +19,9 @@ class LoadMedia:
         self.last_image = None
 
         self.mask = cv2.imread('mask.png', 0)
-        # contours, hierarchy = cv2.findContours(self.mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        # cnt = contours[0]
-        # self.x, self.y, self.w, self.h = cv2.boundingRect(cnt)
+        contours, hierarchy = cv2.findContours(self.mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnt = contours[0]
+        self.x, self.y, self.w, self.h = cv2.boundingRect(cnt)
 
     def __iter__(self):
         self.count = 0
@@ -51,7 +51,7 @@ class LoadMedia:
             img0 = cv2.imread(path)  # BGR
             # img0 = numpy.fromstring(self.redis.get('last_img'))
             img0 = cv2.bitwise_and(img0, img0, mask=self.mask)
-            # img0 = img0[self.y:self.y + self.h, self.x:self.x + self.w]
+            img0 = img0[self.y:self.y + self.h, self.x:self.x + self.w]
             if img0 is None:
                 continue
             s = filename
