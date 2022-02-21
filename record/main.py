@@ -3,6 +3,7 @@ import queue
 import time
 
 import cv2
+import numpy
 import pafy
 from dotenv import load_dotenv
 from redis import Redis
@@ -19,6 +20,8 @@ MAX_IMAGES = int(os.environ.get('RECORDING_MAX_IMAGES'))
 VIDEO_DURATION = int(os.environ.get('RECORDING_VIDEO_DURATION'))
 MAX_VIDEOS = int(os.environ.get('RECORDING_MAX_VIDEOS'))
 REDIS_HOST = os.environ.get('REDIS_HOST')
+IMAGE_FORMAT = os.environ.get('IMAGE_FORMAT')
+YOUTUBE_QUALITY = os.environ.get('YOUTUBE_QUALITY')
 redis = Redis(host=REDIS_HOST, port=6379, db=0)
 
 import threading
@@ -67,17 +70,21 @@ class FrameSaver:
         self.video_writer = cv2.VideoWriter(f'{VIDEO_PATH}/{tt}.mkv', fourcc, self.fps, (self.width, self.height))
         self.video_start = tt
 
-    def next_frame(self, frame):
+    def next_frame(self, frame: numpy.ndarray):
+        print(type(frame))
         t = time.time()
-        image_name = f'{t}.png'
+        image_name = f'{t}.{IMAGE_FORMAT}'
         image_path = f'{IMAGE_PATH}/{image_name}'
         cv2.imwrite(image_path, frame)
         redis.set('last_image', image_name)
+        # redis.set('last_img', frame.tostring())
+
         images = os.listdir(IMAGE_PATH)
         images.sort(reverse=True)
         for frame_to_remove in images[MAX_IMAGES:]:
             os.remove(f'{IMAGE_PATH}/{frame_to_remove}')
-
+        return
+        # TODO write video
         if self.video_writer is None:
             self.create_writer(t)
 
@@ -97,7 +104,7 @@ def get_stream():
     r_url = url
     if 'youtube.com' in r_url:
         video = pafy.new(r_url)
-        streams = [v for v in video.streams if v.extension == 'mp4' and v.quality.endswith('1080')]
+        streams = [v for v in video.streams if v.extension == 'mp4' and v.quality.endswith(YOUTUBE_QUALITY)]
 
         # best = video.getworst(preftype="mp4")
         r_url = streams[0].url

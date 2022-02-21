@@ -18,6 +18,7 @@ IMAGES_PATH = os.environ.get('BACKEND_IMAGES_PATH')
 DETECTED_PATH = os.environ.get('BACKEND_DETECTED_PATH')
 DETECTED_PREFIX_URL = os.environ.get('BACKEND_DETECTED_PREFIX_URL')
 REDIS_HOST = os.environ.get('REDIS_HOST')
+IMAGE_FORMAT = os.environ.get('IMAGE_FORMAT')
 redis = Redis(host=REDIS_HOST, port=6379, db=0)
 
 
@@ -60,9 +61,9 @@ def gen_stream(path=DETECTED_PATH, redis_key='last_detect', size=None):
         frame = cv2.imread(f'{path}/{filename}')
         if size is not None:
             frame = resize_to_height(frame, size)
-        (flag, encodedImage) = cv2.imencode(".png", frame)
+        (flag, encodedImage) = cv2.imencode(f".{IMAGE_FORMAT}", frame)
         yield (b'--frame\r\n'
-               b'Content-Type: image/png\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
+               b'Content-Type: image/' + IMAGE_FORMAT.encode('utf-8') + b'\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
 
 
 @app.route('/api/detected-stream')

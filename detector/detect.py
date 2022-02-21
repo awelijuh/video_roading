@@ -49,6 +49,7 @@ SAVE_VIDEO_PATH = os.environ.get('DETECTOR_ACCIDENT_SAVE_DIR')
 SAVE_RESULT = os.environ.get('DETECTOR_RESULT_DIR')
 MAX_RESULT = int(os.environ.get('DETECTOR_MAX_RESULT'))
 REDIS_HOST = os.environ.get('REDIS_HOST')
+IMAGE_FORMAT = os.environ.get('IMAGE_FORMAT')
 redis = Redis(host=REDIS_HOST, port=6379, db=0)
 
 
@@ -57,7 +58,7 @@ def detect():
     config_deepsort = 'Yolov5_DeepSort_Pytorch/deep_sort/configs/deep_sort.yaml'
     deep_sort_model = 'osnet_x0_25'
     half = True
-    yolo_model = 'yolov5m.pt'
+    yolo_model = 'yolov5n.pt'
     conf_thres = 0.3
     iou_thres = 0.5
     classes = [1, 2, 3, 5, 7]
@@ -184,7 +185,7 @@ def detect():
                 LOGGER.info('No detections')
 
             im0 = annotator.result()
-            img_name = str(t1) + '.png'
+            img_name = str(t1) + f'.{IMAGE_FORMAT}'
             cv2.imwrite(os.path.join(SAVE_RESULT, img_name), im0)
             redis.set('last_detect', img_name)
             files = os.listdir(SAVE_RESULT)
