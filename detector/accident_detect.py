@@ -8,7 +8,6 @@ class AccidentDetector:
         self.blocked_ids = set()
 
     def add_time(self, time, ids):
-        print(self)
         self.data.append((time, ids))
         ind = 0
         while time - self.data[ind][0] > CASH_SIZE:

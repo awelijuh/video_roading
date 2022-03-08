@@ -13,6 +13,7 @@ services:
     volumes:
       - ./media/detects:/code/detects
       - ./media/images:/code/images
+      - ./media/accidents:/code/accidents
     ports:
       - 5000:5000
     env_file:

@@ -19,6 +19,7 @@ VIDEO_FPS = int(os.environ.get('VIDEO_FPS'))
 MAX_IMAGES = int(os.environ.get('RECORDING_MAX_IMAGES'))
 VIDEO_DURATION = int(os.environ.get('RECORDING_VIDEO_DURATION'))
 MAX_VIDEOS = int(os.environ.get('RECORDING_MAX_VIDEOS'))
+VIDEOS_SAVE_QUALITY = int(os.environ.get('RECORDING_VIDEOS_SAVE_QUALITY'))
 REDIS_HOST = os.environ.get('REDIS_HOST')
 IMAGE_FORMAT = os.environ.get('IMAGE_FORMAT')
 YOUTUBE_QUALITY = os.environ.get('YOUTUBE_QUALITY')
@@ -52,6 +53,14 @@ class VideoCapture:
         return self.q.get()
 
 
+def resize_to_height(img, height):
+    height = int(height)
+    width = img.shape[1]  # keep original width
+    old_height = img.shape[0]
+    width = int(width * height / old_height)
+    return cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
+
+
 class FrameSaver:
     def __init__(self, fps, width, height):
         if not os.path.exists(IMAGE_PATH):
@@ -71,7 +80,6 @@ class FrameSaver:
         self.video_start = tt
 
     def next_frame(self, frame: numpy.ndarray):
-        print(type(frame))
         t = time.time()
         image_name = f'{t}.{IMAGE_FORMAT}'
         image_path = f'{IMAGE_PATH}/{image_name}'
@@ -83,16 +91,16 @@ class FrameSaver:
         images.sort(reverse=True)
         for frame_to_remove in images[MAX_IMAGES:]:
             os.remove(f'{IMAGE_PATH}/{frame_to_remove}')
-        return
-        # TODO write video
+
         if self.video_writer is None:
             self.create_writer(t)
 
-        self.video_writer.write(frame)
+        self.video_writer.write(resize_to_height(frame, VIDEOS_SAVE_QUALITY))
 
         if t - self.video_start >= VIDEO_DURATION:
             self.video_writer.release()
             self.video_writer = None
+            print(f'release {self.video_start} - {t}, d: {t - self.video_start}')
 
             videos = os.listdir(VIDEO_PATH)
             videos.sort(reverse=True)
@@ -137,7 +145,7 @@ class Road:
         self.none_frame_count = 0  # число пустых фреймов
         self.none_frame_to_restart_count = 10  # через сколько пустых фреймов перезапустить стрим
         self.restart_count = 0  # число сделаных перезапусков
-        self.restart_none_frame_to_finish_count = 10  # через сколько неудачных перезапусков завешить программу
+        self.restart_none_frame_to_finish_count = 10000  # через сколько неудачных перезапусков завешить программу
 
         self.real_fps = 0
         self.is_road = None
@@ -184,6 +192,8 @@ class Road:
             self.stream = cv2.VideoCapture(url)
             self.none_frame_count = 0
             self.restart_count += 1
+            redis.set('read_fps', 0)
+            time.sleep(4)
 
 
 if __name__ == '__main__':

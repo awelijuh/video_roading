@@ -37,11 +37,16 @@ class CustomJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 
-@app.route('/api//accidents')
+@app.route('/api/accidents')
 @cross_origin()
 def video_list():
     lst = os.listdir(ACCIDENT_PATH)
-    lst = [{'name': fl.rstrip('.mkv'), 'url': ACCIDENT_PREFIX_URL + fl} for fl in lst]
+    lst = [
+        {
+            'filename': fl,
+            'path': ACCIDENT_PREFIX_URL + fl,
+            'time': cast_or_none(float, fl.rstrip('.mkv'))
+        } for fl in lst]
     return jsonify(lst)
 
 
@@ -64,20 +69,6 @@ def gen_stream(path=DETECTED_PATH, redis_key='last_detect', size=None):
         (flag, encodedImage) = cv2.imencode(f".{IMAGE_FORMAT}", frame)
         yield (b'--frame\r\n'
                b'Content-Type: image/' + IMAGE_FORMAT.encode('utf-8') + b'\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
-
-
-@app.route('/api/detected-stream')
-@cross_origin()
-def detected_stream():
-    return Response(gen_stream(DETECTED_PATH, redis_key='last_detect', size=request.args.get('size', None)),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
-@app.route('/api/raw-stream')
-@cross_origin()
-def raw_stream():
-    return Response(gen_stream(IMAGES_PATH, 'last_image', size=request.args.get('size', None)),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/api/stream')
@@ -104,14 +95,25 @@ def cast_or_none(m_type, value):
         return None
 
 
+def get_param(key, ttype, default=None):
+    try:
+        v = redis.get(key)
+        if v is None:
+            return default
+        return cast_or_none(ttype, v.decode('utf-8'))
+    except Exception:
+        return default
+
+
 @app.route('/api/params')
 @cross_origin()
 def get_params():
     d = {
-        'read_fps': cast_or_none(float, redis.get('read_fps').decode("utf-8")),
-        'yolo_time': cast_or_none(float, redis.get('yolo_time').decode("utf-8")),
-        'deep_sort_time': cast_or_none(float, redis.get('deep_sort_time').decode("utf-8")),
-        'detect_fps': cast_or_none(float, redis.get('detect_fps').decode("utf-8")),
+        'read_fps': get_param('read_fps', float),
+        'yolo_time': get_param('yolo_time', float),
+        'deep_sort_time': get_param('deep_sort_time', float),
+        'detect_fps': get_param('detect_fps', float),
+        'is_saving': get_param('is_saving', bool, False),
     }
     return jsonify(d)
 

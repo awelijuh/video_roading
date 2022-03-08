@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from redis import Redis
 
 from accident_detect import AccidentDetector
+from video_saver import VideoSaver
 
 sys.path.insert(0, "Yolov5_DeepSort_Pytorch/yolov5")
 sys.path.append("Yolov5_DeepSort_Pytorch")
@@ -65,11 +66,12 @@ def detect():
     agnostic_nms = True
     augment = True
     visualize = False
-    max_det = 1000
+    max_det = 100
     imgsz = 640
     dnn = True
 
     accident_detector = AccidentDetector()
+    video_saver = VideoSaver(redis, VIDEO_FRAGMENTS_PATH, SAVE_VIDEO_PATH)
 
     device = select_device(device)
     # initialize deepsort
@@ -173,8 +175,9 @@ def detect():
                         ids.append(id)
 
                     accident_detector.add_time(t1, ids)
-                    # if accident_detector.is_accident():
-                    #     save_accident_video(VIDEO_FRAGMENTS_PATH, SAVE_VIDEO_PATH)
+                    if accident_detector.is_accident():
+                        video_saver.save_video()
+
                 redis.set('yolo_time', t3 - t2)
                 redis.set('deep_sort_time', t5 - t4)
                 redis.set('detect_fps', 1 / (t5 - t1))

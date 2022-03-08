@@ -35,7 +35,7 @@ export function Info(props) {
 
     return (
         <div className="w-auto me-2">
-            <div className="border p-2">
+            <div className={"border p-2" + (props?.showType ? "" : " d-none")}>
                 <FormControl className="m-2 w-100" variant="standard" sx={{m: 1, minWidth: 120}}>
                     <InputLabel id="type-label">Тип</InputLabel>
                     <Select
@@ -63,7 +63,6 @@ export function Info(props) {
                         sx={{width: 400}}
                         onChange={(e) => onChangeOptions?.({...options, size: e.target.value})}
                     >
-                        <MenuItem value={"1080"}>1080p</MenuItem>
                         <MenuItem value={"720"}>720p</MenuItem>
                         <MenuItem value={"540"}>540p</MenuItem>
                         <MenuItem value={"480"}>480p</MenuItem>
@@ -78,6 +77,7 @@ export function Info(props) {
                     <Item name="detect fps" value={params?.detect_fps?.toFixed?.(3)}/>
                     <Item name="yolo time" value={params?.yolo_time?.toFixed?.(3)}/>
                     <Item name="DeepSort time" value={params?.deep_sort_time?.toFixed?.(3)}/>
+                    <Item name="Запись" value={params?.is_saving === true ? "on" : "off"}/>
                     </tbody>
                 </table>
             </div>
