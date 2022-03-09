@@ -189,7 +189,6 @@ class Road:
 
         if self.none_frame_count >= self.none_frame_to_restart_count:
             self.stream = get_stream()
-            self.stream = cv2.VideoCapture(url)
             self.none_frame_count = 0
             self.restart_count += 1
             redis.set('read_fps', 0)
