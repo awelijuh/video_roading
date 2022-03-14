@@ -15,13 +15,13 @@ class AccidentDetector:
         self.data = self.data[ind:]
 
     def is_accident(self):
-        tt, ids = self.data[-1]
+        tt, last_ids = self.data[-1]
         min_time = {}
         for t, ids in self.data[::-1]:
             for id in ids:
                 min_time[id] = t
         accident = False
-        for id in ids:
+        for id in last_ids:
             if id in self.blocked_ids:
                 continue
             if tt - min_time[id] >= ACCIDENT_TIME:
