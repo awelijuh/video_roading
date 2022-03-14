@@ -21,10 +21,14 @@ class AccidentDetector:
             for id in ids:
                 min_time[id] = t
         accident = False
+        accident_ids = []
         for id in last_ids:
             if id in self.blocked_ids:
                 continue
             if tt - min_time[id] >= ACCIDENT_TIME:
                 accident = True
                 self.blocked_ids.add(id)
+                accident_ids.append(id)
+        if accident:
+            print('accident detected! ids =', accident_ids)
         return accident

@@ -33,10 +33,12 @@ class VideoSaver(Thread):
 
     def run(self) -> None:
         self.is_save = True
+        print('begin video saver')
         self.redis.set('is_saving', 1)
         save_accident_video(self.video_path, self.save_dir)
         self.is_save = False
         self.redis.set('is_saving', 0)
+        print('end video saver')
 
 
 def save_accident_video(video_path, save_dir):
@@ -57,4 +59,4 @@ def save_accident_video(video_path, save_dir):
         out = concatenate_videoclips(videos)
         out.write_videofile(save_dir + '/' + files[0], codec='libx264')
     except Exception as e:
-        print(e)
+        print('save error', e)
