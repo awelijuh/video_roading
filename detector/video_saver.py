@@ -33,10 +33,10 @@ class VideoSaver(Thread):
 
     def run(self) -> None:
         self.is_save = True
-        self.redis.set('is_saving', True)
+        self.redis.set('is_saving', 1)
         save_accident_video(self.video_path, self.save_dir)
         self.is_save = False
-        self.redis.set('is_saving', False)
+        self.redis.set('is_saving', 0)
 
 
 def save_accident_video(video_path, save_dir):
