@@ -59,7 +59,7 @@ def detect():
     config_deepsort = 'Yolov5_DeepSort_Pytorch/deep_sort/configs/deep_sort.yaml'
     deep_sort_model = 'osnet_x0_25'
     half = True
-    yolo_model = 'yolov5n.pt'
+    yolo_model = 'yolov5s.pt'
     conf_thres = 0.3
     iou_thres = 0.5
     classes = [1, 2, 3, 5, 7]
