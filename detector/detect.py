@@ -181,11 +181,11 @@ def detect():
                 redis.set('yolo_time', t3 - t2)
                 redis.set('deep_sort_time', t5 - t4)
                 redis.set('detect_fps', 1 / (t5 - t1))
-                LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s), DeepSort:({t5 - t4:.3f}s)')
+                # LOGGER.info(f'{s}Done. YOLO:({t3 - t2:.3f}s), DeepSort:({t5 - t4:.3f}s)')
 
             else:
                 deepsort.increment_ages()
-                LOGGER.info('No detections')
+                # LOGGER.info('No detections')
 
             im0 = annotator.result()
             img_name = str(t1) + f'.{IMAGE_FORMAT}'
