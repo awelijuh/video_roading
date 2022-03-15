@@ -1,4 +1,5 @@
 import os
+import queue
 import time
 
 import cv2
@@ -31,21 +32,26 @@ class VideoCapture:
 
     def __init__(self, name):
         self.cap = cv2.VideoCapture(name)
-        self.t = threading.Thread(target=self._reader)
-        self.t.daemon = True
-        self.t.start()
+        self.q = queue.Queue(maxsize=1)
+        t = threading.Thread(target=self._reader)
+        t.daemon = True
+        t.start()
 
-    # grab frames as soon as they are available
+    # read frames as soon as they are available, keeping only most recent one
     def _reader(self):
         while True:
-            ret = self.cap.grab()
+            ret, frame = self.cap.read()
             if not ret:
                 break
+            if not self.q.empty():
+                try:
+                    self.q.get_nowait()  # discard previous (unprocessed) frame
+                except queue.Empty:
+                    pass
+            self.q.put(frame)
 
-    # retrieve latest frame
     def read(self):
-        ret, frame = self.cap.retrieve()
-        return ret, frame
+        return True, self.q.get()
 
 
 def resize_to_height(img, height):
