@@ -63,7 +63,7 @@ def save_accident_video(video_path, save_dir):
         videos = []
         for f in videos_files:
             try:
-                videos.append(VideoFileClip(os.path.join(TMP_DIR, f)))
+                videos.append(VideoFileClip(f))
             except Exception as e:
                 logger.error('video read error, ' + str(e))
         if len(videos) == 0:
