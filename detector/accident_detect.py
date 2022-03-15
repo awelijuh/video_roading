@@ -1,5 +1,8 @@
+import logging
+
 CASH_SIZE = 10 * 60  # seconds
 ACCIDENT_TIME = 2 * 60  # seconds
+logger = logging.getLogger('accident_detector')
 
 
 class AccidentDetector:
@@ -13,6 +16,7 @@ class AccidentDetector:
         while time - self.data[ind][0] > CASH_SIZE:
             ind += 1
         self.data = self.data[ind:]
+        logger.info('add_time time=' + str(time) + ', ids=' + str(ids) + ', ind=' + str(ind))
 
     def is_accident(self):
         tt, last_ids = self.data[-1]
@@ -20,6 +24,7 @@ class AccidentDetector:
         for t, ids in self.data[::-1]:
             for id in ids:
                 min_time[id] = t
+        logger.info('is_accident min_time=' + str(min_time))
         accident = False
         accident_ids = []
         for id in last_ids:
@@ -30,5 +35,5 @@ class AccidentDetector:
                 self.blocked_ids.add(id)
                 accident_ids.append(id)
         if accident:
-            print('accident detected! ids =', accident_ids)
+            logger.info('accident detected! ids =' + str(accident_ids))
         return accident
