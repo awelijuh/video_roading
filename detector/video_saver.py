@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 from threading import Thread
@@ -5,6 +6,8 @@ from threading import Thread
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 TMP_DIR = '/video_tmp'
+
+logger = logging.getLogger('video_saver')
 
 
 def chek_tmp():
@@ -18,27 +21,29 @@ def clear_tmp():
         os.remove(os.path.join(TMP_DIR, f))
 
 
-class VideoSaver(Thread):
+class VideoSaver:
     def __init__(self, redis, video_path, save_dir):
         super().__init__()
         self.is_save = False
         self.redis = redis
         self.video_path = video_path
         self.save_dir = save_dir
+        self.thread = None
 
     def save_video(self):
         if self.is_save:
             return
-        self.start()
+        self.thread = Thread(target=self.run)
+        self.thread.start()
 
     def run(self) -> None:
         self.is_save = True
-        print('begin video saver')
+        logger.info('begin video saver')
         self.redis.set('is_saving', 1)
         save_accident_video(self.video_path, self.save_dir)
-        self.is_save = False
+        logger.info('end video saver')
         self.redis.set('is_saving', 0)
-        print('end video saver')
+        self.is_save = False
 
 
 def save_accident_video(video_path, save_dir):
@@ -55,8 +60,16 @@ def save_accident_video(video_path, save_dir):
             shutil.copyfile(os.path.join(video_path, f), os.path.join(TMP_DIR, f))
             videos_files.append(os.path.join(TMP_DIR, f))
 
-        videos = [VideoFileClip(os.path.join(TMP_DIR, f)) for f in videos_files]
+        videos = []
+        for f in videos_files:
+            try:
+                videos.append(VideoFileClip(os.path.join(TMP_DIR, f)))
+            except Exception as e:
+                logger.error('video read error, ' + str(e))
+        if len(videos) == 0:
+            logger.info('videos 0')
+            return
         out = concatenate_videoclips(videos)
         out.write_videofile(save_dir + '/' + files[0], codec='libx264')
     except Exception as e:
-        print('save error', e)
+        logger.error('save_accident_video error, ' + str(e))
