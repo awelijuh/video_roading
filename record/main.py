@@ -113,7 +113,7 @@ def get_stream():
         # best = video.getworst(preftype="mp4")
         r_url = streams[0].url
 
-    return VideoCapture(r_url)
+    return cv2.VideoCapture(r_url)
 
 
 class Road:
@@ -121,7 +121,7 @@ class Road:
         self.stream = get_stream()
         # self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 0)
         # cv2.CAP_PROP_VIDEO_STREAM
-        cap = self.stream.cap
+        cap = self.stream
         self.fps = fps
         if self.fps is None:
             self.fps = float(cap.get(cv2.CAP_PROP_FPS))
