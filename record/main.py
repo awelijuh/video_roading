@@ -31,6 +31,7 @@ import threading
 class VideoCapture:
 
     def __init__(self, name):
+        self.wt = 1 / 25
         self.cap = cv2.VideoCapture(name)
         self.q = queue.Queue()
         t = threading.Thread(target=self._reader)
@@ -40,6 +41,7 @@ class VideoCapture:
     # read frames as soon as they are available, keeping only most recent one
     def _reader(self):
         while True:
+            start_time = time.time()
             ret, frame = self.cap.read()
             if not ret:
                 break
@@ -49,9 +51,12 @@ class VideoCapture:
                 except queue.Empty:
                     pass
             self.q.put(frame)
+            dt = time.time() - start_time
+            if self.wt - dt > 0:
+                time.sleep(self.wt - dt)
 
     def read(self):
-        return self.q.get()
+        return True, self.q.get()
 
 
 def resize_to_height(img, height):
