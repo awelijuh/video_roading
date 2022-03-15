@@ -51,7 +51,7 @@ class VideoCapture:
             self.q.put(frame)
 
     def read(self):
-        return self.q.get()
+        return True, self.q.get()
 
 
 def resize_to_height(img, height):
