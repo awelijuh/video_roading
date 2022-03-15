@@ -65,7 +65,7 @@ def save_accident_video(video_path, save_dir):
             try:
                 videos.append(VideoFileClip(f))
             except Exception as e:
-                logger.error('video read error, ' + str(e))
+                logger.error('video read error, file=' + f + ', error=' + str(e))
         if len(videos) == 0:
             logger.info('videos 0')
             return
