@@ -31,7 +31,7 @@ import threading
 class VideoCapture:
 
     def __init__(self, name):
-        self.wt = 1 / 10
+        self.wt = 1 / 20
         self.cap = cv2.VideoCapture(name)
         self.q = queue.Queue()
         t = threading.Thread(target=self._reader)
