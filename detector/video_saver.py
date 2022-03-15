@@ -57,15 +57,16 @@ def save_accident_video(video_path, save_dir):
         for f in files:
             if not f.endswith('.mkv'):
                 continue
-            shutil.copyfile(os.path.join(video_path, f), os.path.join(TMP_DIR, f))
-            videos_files.append(os.path.join(TMP_DIR, f))
+            # shutil.copyfile(os.path.join(video_path, f), os.path.join(TMP_DIR, f))
+            videos_files.append(os.path.join(video_path, f))
 
         videos = []
         for f in videos_files:
             try:
                 videos.append(VideoFileClip(f))
             except Exception as e:
-                logger.error('video read error, file=' + f + ', error=' + str(e))
+                pass
+                # logger.error('video read error, file=' + f + ', error=' + str(e))
         if len(videos) == 0:
             logger.info('videos 0')
             return
