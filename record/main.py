@@ -32,7 +32,7 @@ class VideoCapture:
 
     def __init__(self, name):
         self.cap = cv2.VideoCapture(name)
-        self.q = queue.Queue(maxsize=1)
+        self.q = queue.Queue()
         t = threading.Thread(target=self._reader)
         t.daemon = True
         t.start()
@@ -51,7 +51,7 @@ class VideoCapture:
             self.q.put(frame)
 
     def read(self):
-        return True, self.q.get()
+        return self.q.get()
 
 
 def resize_to_height(img, height):
@@ -118,14 +118,14 @@ def get_stream():
         # best = video.getworst(preftype="mp4")
         r_url = streams[0].url
 
-    return VideoCapture(r_url)
+    return cv2.VideoCapture(r_url)
 
 
 class Road:
     def __init__(self, fps=VIDEO_FPS):
         self.stream = get_stream()
-        # self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 0)
-        cap = self.stream.cap
+        self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 0)
+        cap = self.stream
         self.fps = fps
         if self.fps is None:
             self.fps = float(cap.get(cv2.CAP_PROP_FPS))
