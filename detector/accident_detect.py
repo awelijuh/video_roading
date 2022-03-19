@@ -33,6 +33,5 @@ class AccidentDetector:
                 self.blocked_ids.add(id)
                 accident_ids.append(id)
         if accident:
-            logger.info('accident detected! ids =' + str(accident_ids))
-            logger.info('is_accident min_time=' + str(min_time))
+            logger.info('accident detected!')
         return accident

@@ -16,6 +16,6 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # TODO костыль для youtube
-RUN pip install -e git+git://github.com/mohamed-challal/pafy.git@develop#egg=pafy
+RUN pip install -e git+https://github.com/mohamed-challal/pafy.git@develop#egg=pafy
 
 COPY . /code/

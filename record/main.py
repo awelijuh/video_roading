@@ -50,6 +50,9 @@ class VideoCapture:
 
 
 def resize_to_height(img, height):
+    print(height)
+    if height is None:
+        return img
     height = int(height)
     width = img.shape[1]  # keep original width
     old_height = img.shape[0]
@@ -71,8 +74,9 @@ class FrameSaver:
         self.video_start = None
 
     def create_writer(self, tt):
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.video_writer = cv2.VideoWriter(f'{VIDEO_PATH}/{tt}.mkv', fourcc, self.fps, (self.width, self.height))
+        fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+        # fourcc = -1
+        self.video_writer = cv2.VideoWriter(f'{VIDEO_PATH}/{tt}.avi', fourcc, self.fps, (self.width, self.height))
         self.video_start = tt
 
     def next_frame(self, frame: numpy.ndarray):
@@ -91,7 +95,7 @@ class FrameSaver:
         if self.video_writer is None:
             self.create_writer(t)
 
-        self.video_writer.write(resize_to_height(frame, VIDEOS_SAVE_QUALITY))
+        self.video_writer.write(resize_to_height(frame, None))
 
         if t - self.video_start >= VIDEO_DURATION:
             self.video_writer.release()
