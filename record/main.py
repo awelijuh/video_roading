@@ -76,7 +76,7 @@ class FrameSaver:
     def create_writer(self, tt):
         fourcc = cv2.VideoWriter_fourcc(*'DIVX')
         # fourcc = -1
-        self.video_writer = cv2.VideoWriter(f'{VIDEO_PATH}/{tt}.avi', fourcc, self.fps, (self.width, self.height))
+        self.video_writer = cv2.VideoWriter(f'{VIDEO_PATH}/{tt}.avi', fourcc, 25, (self.width, self.height))
         self.video_start = tt
 
     def next_frame(self, frame: numpy.ndarray):
