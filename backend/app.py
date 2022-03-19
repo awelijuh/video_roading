@@ -41,6 +41,7 @@ class CustomJSONEncoder(JSONEncoder):
 @cross_origin()
 def video_list():
     lst = os.listdir(ACCIDENT_PATH)
+    lst.sort()
     lst = [
         {
             'filename': fl,
