@@ -1,8 +1,8 @@
-import logging
+import logging    
 
 CASH_SIZE = 10 * 60  # seconds
 ACCIDENT_TIME = 2 * 60  # seconds
-ACCIDENT_COUNT = 20  # seconds
+ACCIDENT_COUNT = 40  # count
 logger = logging.getLogger('accident_detector')
 
 
